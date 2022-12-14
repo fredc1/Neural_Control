@@ -2,42 +2,42 @@ import numpy as np
 from scipy.integrate import solve_ivp
 import math
 
-class DataStreamer:
+class PendDataStreamer:
     #statics
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, L) -> None:
+        self.L = L
 
-    def get_data() -> list:
-        pass
+    def get_data(self) -> tuple:
+        print("unimplemented")
 
+class InvertedPendUnforced(PendDataStreamer):
+    @staticmethod
+    def dx(t, y, m, M, L, g, b, u):
+        x, v, th, om = y
+        S = math.sin(th)
+        C = math.cos(th)
+        D = m*L*L*(M+m*(1-C**2))
+        dx = v
+        dv = (1/D) * (-1*m**2 * L*2 * g *C *S + m*L**2 * (m*L*om**2*S - b*v) + m*L*L*(1/D)*u)
+        dth = om
+        dom = (1/D) * ((M+m) * m*g*L *S - m*L*C *(m*L*om**2 * S - b*v) - m*L*C*(1/D)*u)
+        return [dx, dv, dth, dom]
 
+    def __init__(self, L) -> None:
+        super().__init__(L)
+        #(m, M, L, g, b, u)
+        self.args = (1, 4, L, -10, 4, 0)
+    
+    def solve(self) -> tuple:
+         sol = solve_ivp(InvertedPendUnforced.dx, t_span=(0,50), y0=[0, 0, 5*math.pi/6, 0], method='RK23', args=self.args)
+         #print(sol.y.T)
+         #print(len(sol.y.T))
+         return (sol.t.T, sol.y.T)
 
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-
-# Set the initial position of the ball and rectangle
-ball_x = 0
-rect_x = 0
-
-# Set the figure and axes for the plot
-fig, ax = plt.subplots()
-cart = plt.Rectangle((0, 0), 2, 2)
-# Create the ball and rectangle objects
-ball, = ax.plot(ball_x, 0, 'bo', markersize=20)
-rect = ax.bar(rect_x, 5, width=10, color='r')
-ax.add_artist(cart)
-# Set the limits for the x and y axes
-ax.set_xlim(0, 100)
-ax.set_ylim(0, 10)
-
-# Function to update the plot at each time step
-def update(i):
-    # Move the ball and rectangle to the right by 1 unit
-    ball.set_xdata(ball_x + i)
-    #rect.center = (rect_x + i,0)
-    cart.center = (i,i)
-
-# Create the animation using the update function
-animation = FuncAnimation(fig, update, frames=range(100),interval=1)
-plt.show()
+    def get_data(self):
+        (t, state) = self.solve()
+        x_vals = list(state.T[0])
+        theta_vals = list(state.T[2])
+        time_vals = list(t)
+        return (time_vals, x_vals, theta_vals)

@@ -2,16 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from matplotlib.patches import Rectangle
-
-
-n_steps = 1000
-theta = [np.pi for i in range(n_steps)]
-x = [i/50 for i in range(n_steps)]
+from dynamics import InvertedPendUnforced
+L = 3
+t,x,theta = InvertedPendUnforced(L=L).get_data()
+n_steps = len(t)
+#theta = [6*np.pi/7 for i in range(n_steps)]
+#x = [i/50 for i in range(n_steps)]
 theta0 = theta[0]
 x0 = x[0]
 cart_w = 1
-cart_h = 0.5
-L = 3
+cart_h = 0.4
+
 
 fig, ax = plt.subplots()
 ax.set_xlim([-5,5])
@@ -38,7 +39,10 @@ def update(i):
     return rod, bob, rect
 
 # Create the animation using the update function and the lists of theta and omega values
-ani = animation.FuncAnimation(plt.gcf(), update, frames=range(n_steps), interval=10)
+ani = animation.FuncAnimation(plt.gcf(), update, frames=range(n_steps), interval=100)
 
 # Show the animation
+plt.show()
+
+plt.plot(x)
 plt.show()
