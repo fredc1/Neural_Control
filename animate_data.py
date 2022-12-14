@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from matplotlib.patches import Rectangle
 from dynamics import InvertedPendUnforced
-L = 3
-t,x,theta = InvertedPendUnforced(L=L).get_data()
+
+t,x,theta = InvertedPendUnforced(t_final=50,t_step=0.1).get_data()
 n_steps = len(t)
 #theta = [6*np.pi/7 for i in range(n_steps)]
 #x = [i/50 for i in range(n_steps)]
@@ -12,7 +12,7 @@ theta0 = theta[0]
 x0 = x[0]
 cart_w = 1
 cart_h = 0.4
-
+L = 3
 
 fig, ax = plt.subplots()
 ax.set_xlim([-5,5])
@@ -42,7 +42,4 @@ def update(i):
 ani = animation.FuncAnimation(plt.gcf(), update, frames=range(n_steps), interval=100)
 
 # Show the animation
-plt.show()
-
-plt.plot(x)
 plt.show()
