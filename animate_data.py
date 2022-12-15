@@ -2,9 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from matplotlib.patches import Rectangle
-from dynamics import InvertedPendUnforced
+from dynamics import InvertedPendUnforced, InvertedPendSinForce
 
-t,x,theta = InvertedPendUnforced(t_final=50,t_step=0.1).get_data()
+t,x,theta = InvertedPendSinForce(t_final=50,t_step=0.1,freq=2,i_conditions=[0, 0, 0, 0]).get_data()
 n_steps = len(t)
 #theta = [6*np.pi/7 for i in range(n_steps)]
 #x = [i/50 for i in range(n_steps)]
