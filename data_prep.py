@@ -24,9 +24,9 @@ class SystemIdentDataset(Dataset):
             self.data = val_set
         
     def generate_trajectories(self):
-        data = np.zeros((250*7*1000,8))
+        data = np.zeros((500*7*1000,8))
         count = 0
-        for freq in [2*i/100 for i in range(250)]:
+        for freq in [i/100 for i in range(500)]:
             for theta0 in [i*np.pi/6 for i in range(7)]:
                 i_conds = [0, 0, theta0, 0]
                 solver = InvertedPendSinForce(t_final=100, t_step=0.1, freq=freq, i_conditions=i_conds)
