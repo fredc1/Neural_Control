@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import os
 from torch.utils.data import Dataset
-from dynamics import InvertedPendSinForce
+from dynamics import InvertedPendSinForce, InvertedPendUnforced
 import random
 import pandas as pd
 import pickle
@@ -55,21 +55,54 @@ class SystemIdentDataset(Dataset):
 
 class ControllerDataset(Dataset):
     def __init__(self, num_examples=100000):
+        assert num_examples%2 == 0
         self.data = np.zeros((num_examples,4))
-        
-        for i in range(num_examples):
-            x = (random.random() - 0.5)*50
-            v = (random.random() - 0.5)*10
-            th = (random.random() - 0.5)*2*np.pi
-            om = (random.random() - 0.5)*20
-            np.copyto(self.data[i],np.array([x, v, th, om]))
-            
-        self.label = torch.tensor([0,0,np.pi,0],dtype=torch.float64)
+        self.label = torch.tensor([0,0,0.5,0],dtype=torch.float64)
+        for i in range(len(self.data)/2):
+            x = 2*np.array(torch.rand((1,4),dtype=torch.float64)) - 1
+            x[0] *= 10
+            np.copyto(self.data[i],x)
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
-        return torch.tensor(self.data[idx], dtype=torch.float64), self.label
+        return self.example, self.label
+
+class SystemIdentDatasetNormed(Dataset):
+    def __init__(self, num_examples=100000):
+        
+        self.data = np.zeros((num_examples,8))
+        (m, Mm, Ll,   g, b) = (1, 4, 3, -10, 4)
+        max_acc = 200 #adjust to constrain the force on the cart
+        max_u = max_acc*(m+Mm)
+        max_v = max_acc*1
+        max_th = 2*np.pi
+        max_om = np.sqrt((m+Mm)/(m*Ll**2)*max_v**2)
+        self.scale = np.array([max_u,max_v,max_th,max_om])
+        self.ouput_scale = 1000
+
+        self.dx = lambda u, y: InvertedPendUnforced.dx(0, y, m, Mm, Ll, g, b, u)
+        for i in range(num_examples):
+            x = 2*np.array(torch.rand((1,4),dtype=torch.float64)) - 1
+            scaled_x = x*self.scale
+            u = scaled_x[0][0]
+            v = scaled_x[0][1]
+            th = scaled_x[0][2]
+            om = scaled_x[0][3]
+            dx, dv, dth, dom = self.dx(u, (0,v,th,om))
+            dx = dx*0.1
+            dv = dv*0.1/scaled_x[0][1]
+            dth = dth*0.1/scaled_x[0][2]
+            dom = dom*0.1/scaled_x[0][3]
+            res = np.array([dx, dv, dth, dom])#*self.ouput_scale
+            np.copyto(self.data[i][:4],x)
+            np.copyto(self.data[i][-4:],res)
+            
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        return torch.tensor(self.data[idx][:4], dtype=torch.float64), torch.tensor(self.data[idx][-4:], dtype=torch.float64)
     
         

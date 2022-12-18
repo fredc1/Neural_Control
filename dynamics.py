@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.integrate import solve_ivp
 import math
+import torch
+import pickle
 
 class PendDataStreamer:
     def __init__(self, t_final, t_step) -> None:
@@ -70,4 +72,25 @@ class InvertedPendSinForce(InvertedPendUnforced):
             return self.force_scale*np.sin(self.freq*t)
         else:
             return 0
+
+class InvertedPendNNControl(InvertedPendUnforced):
+    
+    def __init__(self, t_final, t_step, i_conditions=None) -> None:
+        if i_conditions is not None:
+            super(self.__class__, self).__init__(t_final, t_step, i_conditions)
+        else:
+            super(self.__class__, self).__init__(t_final, t_step)
+        with open('./controller_model.pkl', 'rb') as f:
+            self.controller = pickle.load(f)
+        
+    def u(self, t, y):
+        (x,v,th,om) = y
+        input = torch.zeros((1,4),dtype=torch.float64)
+        input[0][0] = x
+        input[0][1] = v
+        input[0][2] = th
+        input[0][3] = om
+        
+        return self.controller(input).item()
+        
 
