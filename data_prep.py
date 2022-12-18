@@ -52,4 +52,24 @@ class SystemIdentDataset(Dataset):
 
     def __getitem__(self, idx):
         return torch.tensor(self.data[idx][:4]), torch.tensor(self.data[idx][-4:])
+
+class ControllerDataset(Dataset):
+    def __init__(self, num_examples=100000):
+        self.data = np.zeros((num_examples,4))
+        
+        for i in range(num_examples):
+            x = (random.random() - 0.5)*50
+            v = (random.random() - 0.5)*10
+            th = (random.random() - 0.5)*2*np.pi
+            om = (random.random() - 0.5)*20
+            np.copyto(self.data[i],np.array([x, v, th, om]))
+            
+        self.label = torch.tensor([0,0,np.pi,0],dtype=torch.float64)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        return torch.tensor(self.data[idx], dtype=torch.float64), self.label
+    
         

@@ -38,7 +38,7 @@ class InvertedPendUnforced(PendDataStreamer):
 
     def u(self, t, y):
         (x,v,theta,omega) = y
-        return 1000
+        return 0
 
     @staticmethod
     def dx(t, y, m, M, L, g, b, u):
