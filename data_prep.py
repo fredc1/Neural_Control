@@ -58,16 +58,20 @@ class ControllerDataset(Dataset):
         assert num_examples%2 == 0
         self.data = np.zeros((num_examples,4))
         self.label = torch.tensor([0,0,0.5,0],dtype=torch.float64)
-        for i in range(len(self.data)/2):
-            x = 2*np.array(torch.rand((1,4),dtype=torch.float64)) - 1
-            x[0] *= 10
+        for i in range(int(len(self.data)/2)):
+            #x = 2*np.array(torch.rand((1,4),dtype=torch.float64)) - 1
+            #x[0] = 0 
+            x = np.zeros((1,4))
+            x[0][2] = 0.5 + (2*random.random()-1)/10
             np.copyto(self.data[i],x)
+            #np.copyto(self.data[i+1],np.zeros_like(x))
+            
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
-        return self.example, self.label
+        return torch.tensor(self.data[idx],dtype=torch.float64), self.label
 
 class SystemIdentDatasetNormed(Dataset):
     def __init__(self, num_examples=100000):
