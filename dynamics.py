@@ -80,17 +80,27 @@ class InvertedPendNNControl(InvertedPendUnforced):
             super(self.__class__, self).__init__(t_final, t_step, i_conditions)
         else:
             super(self.__class__, self).__init__(t_final, t_step)
-        with open('./controller_model.pkl', 'rb') as f:
+        with open('./controller_model2.pkl', 'rb') as f:
             self.controller = pickle.load(f)
+        
+        (m, Mm, Ll,   g, b) = (1, 4, 3, -10, 4)
+        max_acc = 200 #adjust to constrain the force on the cart
+        max_u = max_acc*(m+Mm)
+        max_v = max_acc*1
+        max_th = 2*np.pi
+        max_om = np.sqrt((m+Mm)/(m*Ll**2)*max_v**2)
+        self.scale = [max_u,max_v,max_th,max_om]
         
     def u(self, t, y):
         (x,v,th,om) = y
+        
+        max_u,max_v,max_th,max_om = self.scale
         input = torch.zeros((1,4),dtype=torch.float64)
         input[0][0] = x
-        input[0][1] = v
-        input[0][2] = th
-        input[0][3] = om
+        input[0][1] = v/max_v
+        input[0][2] = th/max_th
+        input[0][3] = om/max_om
         
-        return self.controller(input).item()
+        return self.controller(input).item()*max_u
         
 

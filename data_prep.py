@@ -84,7 +84,7 @@ class SystemIdentDatasetNormed(Dataset):
         max_th = 2*np.pi
         max_om = np.sqrt((m+Mm)/(m*Ll**2)*max_v**2)
         self.scale = np.array([max_u,max_v,max_th,max_om])
-        self.ouput_scale = 1000
+        
 
         self.dx = lambda u, y: InvertedPendUnforced.dx(0, y, m, Mm, Ll, g, b, u)
         for i in range(num_examples):
